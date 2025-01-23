@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createRoom } from '@/helpers/createRoom';
+import { createRoom } from '../helpers/createRoom';
 
 const Lobby: React.FC = () => {
     const router = useRouter();

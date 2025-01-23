@@ -1,4 +1,4 @@
-import { db } from '@/firebase/firebase';
+import { db } from '../firebase/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 
 export const createRoom = async () => {
