@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createRoom } from '../helpers/createRoom';
+import { createRoom, getOrCreateGuestId } from '../helpers';
 
 const Lobby: React.FC = () => {
     const router = useRouter();
@@ -11,7 +11,13 @@ const Lobby: React.FC = () => {
     const handleCreateRoom = async () => {
         try {
             setIsCreating(true);
-            const roomId = await createRoom();
+            let userName = localStorage.getItem('bgHeroPlayerName');
+
+            if (!userName) {
+                userName = await getOrCreateGuestId();
+            }
+
+            const roomId = await createRoom(userName);
             router.push(`/room/${roomId}`);
         } catch (error) {
             console.error('Failed to create room:', error);

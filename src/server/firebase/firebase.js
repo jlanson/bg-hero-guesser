@@ -1,5 +1,5 @@
 const admin = require('firebase-admin');
-const serviceAccount = require('./bgHeroFirebaseServiceAccountKey.json')
+const serviceAccount = require('../bgHeroFirebaseServiceAccountKey.json');
 
 // Initialize Firebase Admin SDK
 admin.initializeApp({
