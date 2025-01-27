@@ -6,11 +6,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <body>
           <div>
             <header>
-                <h1>My Next.js App</h1>
+                <h1>Welcome to Battlegrounds Hero Guesser!</h1>
             </header>
             <main>{children}</main>
             <footer>
-                <p>© 2023 My Next.js App</p>
+                <p>-------</p>
             </footer>
           </div>
         </body>

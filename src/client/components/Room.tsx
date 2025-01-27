@@ -1,8 +1,10 @@
 'use client'
 
 import { doc, getDoc } from 'firebase/firestore';
-import React, { use, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { deletePlayerFromRoom, deleteRoom } from '../helpers';
 import { db } from '../firebase/firebase';
+import { useRouter } from 'next/navigation';
 
 interface RoomProps {
     roomId: string;
@@ -16,11 +18,23 @@ interface RoomData {
     moderator: string;
 }
 
+const defaultRoomData: RoomData = {
+    id: '',
+    guesses: [],
+    players: [],
+    status: '',
+    moderator: '',
+};
+
 const Room: React.FC<RoomProps> = ({ roomId }) => {
-    const [roomData, setRoomData] = useState<RoomData | null>(null);
+    const router = useRouter();
+    const [roomData, setRoomData] = useState<RoomData>(defaultRoomData);
     const [loading, setLoading] = useState<boolean>(true);
+    const [gameStarted, setGameStarted] = useState<boolean>(false);
   
     const [socket, setSocket] = useState<WebSocket | null>(null);
+    console.log(socket);
+    console.log(gameStarted);
 
     useEffect(() => {
       // Connect to the WebSocket server
@@ -30,34 +44,50 @@ const Room: React.FC<RoomProps> = ({ roomId }) => {
       ws.onopen = () => {
         console.log('WebSocket connected');
         // Send a join-room message to the server
-        ws.send(JSON.stringify({ action: 'join-room', roomId, userName: 'Guest123' }));
+        ws.send(JSON.stringify({ action: 'join-room', roomId, username: localStorage.getItem('bgHeroPlayerName') }));
       };
   
       ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
         console.log('Message from server:', data);
-  
-        // // Update the messages
-        // if (data.type === 'message' || data.type === 'user-joined' || data.type === 'user-left') {
-        //   setMessages((prev) => [...prev, data.message]);
-        // }
+        
+        if(data.type === 'user-joined'){
+          setRoomData((prev) => {
+            return {
+              ...prev,
+              players: [...prev.players, data.username]
+            };
+          });
+        }
+
+        if(data.type === 'game-start'){
+          setRoomData((prev) => {
+            return {
+              ...prev,
+              turnPlayer: data.turnPlayer,
+            };
+          });
+        }
       };
   
       ws.onclose = () => {
         console.log('WebSocket disconnected');
       };
+
+      window.addEventListener('beforeunload', () => {
+        if(roomId){
+          const username = localStorage.getItem('bgHeroPlayerName');
+          if(username){
+            deletePlayerFromRoom(roomId, username);
+          }
+        }
+      });
   
       return () => {
         ws.close();
       };
     }, [roomId]);
-  
-    const sendMessage = (content: string) => {
-      if (socket) {
-        socket.send(JSON.stringify({ action: 'send-message', roomId, userName: localStorage.getItem('bgHeroPlayerName'), content }));
-      }
-    };
-    
+      
     useEffect(() => {
       const fetchRoom = async () => {
         if(roomId){
@@ -83,6 +113,15 @@ const Room: React.FC<RoomProps> = ({ roomId }) => {
       fetchRoom();
     }, [roomId]);
 
+    const handleDeleteRoom = async () => {
+        try {
+            await deleteRoom(roomId);
+            router.push('/');
+        } catch (error) {
+            console.error('Failed to delete room:', error);
+        }
+    }
+
     const renderContent = () => {
         if (loading) {
             return <p>Loading...</p>;
@@ -95,9 +134,18 @@ const Room: React.FC<RoomProps> = ({ roomId }) => {
         return (
             <div>
                 <h1>Room ID: {roomId.substring(0, 6)}</h1>
-                <h2>Players: {roomData?.players}</h2>
+                <h2>Players: {`${roomData?.players.join(', ')}`}</h2>
+
+
                 {roomData.moderator === localStorage.getItem('bgHeroPlayerName') && (
-                    <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Start Game </button>)}
+                  <div>
+                    <button onClick={() => setGameStarted(true)}
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Start Game </button>
+                    <br />
+                    <button 
+                      onClick={handleDeleteRoom}
+                      className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">End Game </button>
+                  </div>)}
             </div>
         );
     }

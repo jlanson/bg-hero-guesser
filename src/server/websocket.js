@@ -1,21 +1,22 @@
 const { WebSocketServer } = require('ws');
+const { db } = require('./firebase');
 
 const rooms = new Map(); // Map of roomId -> Set of WebSocket connections
 
 // Function to initialize WebSocket server
 const initializeWebSocket = (server) => {
-  const wss = new WebSocketServer({ server });
+  const wss = server;
 
   wss.on('connection', (ws) => {
     console.log('New WebSocket connection established');
 
-    ws.on('message', (data) => {
+    ws.on('message', async (data) => {
       const message = JSON.parse(data);
       console.log('Received:', message);
 
       if (message.action === 'join-room') {
-        const { roomId, userName } = message;
-
+        const { roomId, username } = message;
+        console.log(username);
         // Add the client to the room
         if (!rooms.has(roomId)) {
             rooms.set(roomId, new Set());
@@ -24,9 +25,29 @@ const initializeWebSocket = (server) => {
 
         // Notify other clients in the room
         broadcastToRoom(rooms, roomId, {
-          message: `${userName} joined the room.`,
+          message: `${username} joined the room.`,
           type: 'user-joined',
+          username: username,
         }, ws);
+      }
+
+      if(message.action === 'game-start'){
+        const {roomId} = message;
+
+        const roomRef = doc(db, 'rooms', roomId);
+        const roomSnapshot = await getDoc(roomRef);
+        if(roomSnapshot.exists()){
+          let turnPlayer = roomSnapshot.data().turnPlayer;
+          if(turnPlayer === -1){
+            turnPlayer = Math.floor(Math.random() * roomSnapshot.data().players.length);
+            await updateDoc(roomRef, {turnPlayer});
+          }
+
+        broadcastToRoom(rooms, roomId, {
+          message: 'Game has started',
+          type: 'game-start',
+          turnPlayer: turnPlayer,
+        });
       }
 
       if (message.action === 'send-message') {
