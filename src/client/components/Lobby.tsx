@@ -10,36 +10,40 @@ const Lobby: React.FC = () => {
     const [roomId, setRoomId] = useState('');
 
     const handleCreateRoom = async () => {
-        try {
-            setIsCreating(true);
-            let userName = localStorage.getItem('bgHeroPlayerName');
+        if(window !== undefined){
+            try {
+                setIsCreating(true);
+                let userName = localStorage.getItem('bgHeroPlayerName');
+    
+                if (!userName) {
+                    userName = await getOrCreateGuestId();
+                }
 
-            if (!userName) {
-                userName = await getOrCreateGuestId();
+                const roomId = await createRoom(userName);
+                router.push(`/room/${roomId}`);
+            } catch (error) {
+                console.error('Failed to create room:', error);
+                setIsCreating(false);
             }
-
-            const roomId = await createRoom(userName);
-            router.push(`/room/${roomId}`);
-        } catch (error) {
-            console.error('Failed to create room:', error);
-            setIsCreating(false);
         }
     };
 
     const handleJoinRoom = async (roomId: string) => {
-        let userName = localStorage.getItem('bgHeroPlayerName');
-        if (!userName) {
-            userName = await getOrCreateGuestId();
-        }
-
-        joinNewPlayer(roomId, userName);
-
-        const roomExists = await checkIfRoomExists(roomId);
-        
-        if (roomExists) {
-            router.push(`/room/${roomId}`);
-        } else {
-            alert('Room does not exist');
+        if(window !== undefined){
+            let userName = localStorage.getItem('bgHeroPlayerName');
+            if (!userName) {
+                userName = await getOrCreateGuestId();
+            }
+    
+            joinNewPlayer(roomId, userName);
+    
+            const roomExists = await checkIfRoomExists(roomId);
+            
+            if (roomExists) {
+                router.push(`/room/${roomId}`);
+            } else {
+                alert('Room does not exist');
+            }
         }
     }
 

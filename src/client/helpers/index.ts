@@ -43,24 +43,26 @@ export const createRoom = async (username: string) => {
   }
 };
 
-export const getOrCreateGuestId = async () =>{
-  const guestId = localStorage.getItem('bgHeroPlayerName');
-  if (guestId) {
-    return guestId;
-  } else {
-    const heroes = await getAllHeroData();
-    const randomHero = heroes[Math.floor(Math.random() * heroes.length)];
-    const randomNumber = Math.floor(Math.random() * 1000);
-    
-    if(randomHero){
-      const userName = `${randomHero.name}-${randomNumber}`;
-      localStorage.setItem('bgHeroPlayerName', userName);
-      return userName;
-    }else{
-      return 'Guest123'
+export const getOrCreateGuestId = async (): Promise<string> =>{
+  if(window !== undefined){
+    const guestId = localStorage.getItem('bgHeroPlayerName');
+    if (guestId) {
+      return guestId;
+    } else {
+      const heroes = await getAllHeroData();
+      const randomHero = heroes[Math.floor(Math.random() * heroes.length)];
+      const randomNumber = Math.floor(Math.random() * 1000);
+      
+      if(randomHero){
+        const userName = `${randomHero.name}-${randomNumber}`;
+        localStorage.setItem('bgHeroPlayerName', userName);
+        return userName;
+      }else{
+        return 'Guest123'
+      }
     }
-    
   }
+  return '';
 }
 
 export const getAllHeroData = async (): Promise<HeroData[]> => {

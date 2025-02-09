@@ -37,8 +37,12 @@ const Room: React.FC<RoomProps> = ({ roomId }) => {
     const [gameStarted, setGameStarted] = useState<boolean>(false);
     const [turnPlayerIndex, setTurnPlayerIndex] = useState<number>(-1);
     const [chooserIndex, setChooserIndex] = useState<number>(-1);
-    const [username, setUsername] = useState<string>(localStorage.getItem('bgHeroPlayerName') || '');
-    const [usernameValue, setUsernameValue] = useState<string>(localStorage.getItem('bgHeroPlayerName') || '');
+    const [username, setUsername] = useState<string>('');
+    const [usernameValue, setUsernameValue] = useState<string>('');
+    if(window !== undefined){
+      setUsername(localStorage.getItem('bgHeroPlayerName') || '');
+      setUsernameValue(localStorage.getItem('bgHeroPlayerName') || '');
+    }
     const [openUsernameModal, setOpenUsernameModal] = useState<boolean>(false);
   
     const [socket, setSocket] = useState<WebSocket | null>(null);
@@ -49,9 +53,10 @@ const Room: React.FC<RoomProps> = ({ roomId }) => {
       setSocket(ws);
   
       ws.onopen = () => {
+
         console.log('WebSocket connected');
         // Send a join-room message to the server
-        ws.send(JSON.stringify({ action: 'join-room', roomId, username: localStorage.getItem('bgHeroPlayerName') }));
+        ws.send(JSON.stringify({ action: 'join-room', roomId, username: username}));
       };
   
       ws.onmessage = (event) => {
@@ -89,7 +94,7 @@ const Room: React.FC<RoomProps> = ({ roomId }) => {
       };
 
       window.addEventListener('beforeunload', () => {
-        if(roomId){
+        if(roomId && window !== undefined){
           const username = localStorage.getItem('bgHeroPlayerName');
           if(username){
             deletePlayerFromRoom(roomId, username);
@@ -141,7 +146,7 @@ const Room: React.FC<RoomProps> = ({ roomId }) => {
         alert('Need at least 2 players to start the game!');
         return;
       }
-      if(socket){
+      if(socket && window !== undefined){
         socket.send(JSON.stringify({ action: 'start-game', roomId, username: localStorage.getItem('bgHeroPlayerName') }));
       }
     }
@@ -165,13 +170,15 @@ const Room: React.FC<RoomProps> = ({ roomId }) => {
                   onChange={(e) => setUsernameValue(e.target.value)}
                   onKeyDown={(e)=>{
                     if(e.key === 'Enter'){
-                      if(socket){
-                        const oldUsername = localStorage.getItem('bgHeroPlayerName');
-                        socket.send(JSON.stringify({ action: 'change-username', roomId, oldUsername, newUsername: usernameValue }));
+                      if(window !== undefined){
+                        if(socket){
+                          const oldUsername = localStorage.getItem('bgHeroPlayerName');
+                          socket.send(JSON.stringify({ action: 'change-username', roomId, oldUsername, newUsername: usernameValue }));
+                        }
+                        localStorage.setItem('bgHeroPlayerName', usernameValue);
+                        setUsername(usernameValue);
+                        setOpenUsernameModal(false);
                       }
-                      localStorage.setItem('bgHeroPlayerName', usernameValue);
-                      setUsername(usernameValue);
-                      setOpenUsernameModal(false);
                     }
                   }}/>
               </div>
