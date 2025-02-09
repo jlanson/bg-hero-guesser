@@ -45,7 +45,7 @@ const Room: React.FC<RoomProps> = ({ roomId }) => {
 
     useEffect(() => {
       // Connect to the WebSocket server
-      const ws: WebSocket = new WebSocket('ws://localhost:5000'); // Replace with your server URL
+      const ws: WebSocket = new WebSocket('ws://bg-hero-guesser.onrender.com');
       setSocket(ws);
   
       ws.onopen = () => {
