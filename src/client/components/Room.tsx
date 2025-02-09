@@ -5,6 +5,8 @@ import React, { useEffect, useState } from 'react';
 import { deletePlayerFromRoom, deleteRoom } from '../helpers';
 import { db } from '../firebase/firebase';
 import { useRouter } from 'next/navigation';
+import Game from './Game';
+import { Dialog } from 'radix-ui';
 
 interface RoomProps {
     roomId: string;
@@ -16,6 +18,7 @@ interface RoomData {
     players: string[];
     status: string;
     moderator: string;
+    chooser: number;
 }
 
 const defaultRoomData: RoomData = {
@@ -24,6 +27,7 @@ const defaultRoomData: RoomData = {
     players: [],
     status: '',
     moderator: '',
+    chooser: -1,
 };
 
 const Room: React.FC<RoomProps> = ({ roomId }) => {
@@ -31,14 +35,17 @@ const Room: React.FC<RoomProps> = ({ roomId }) => {
     const [roomData, setRoomData] = useState<RoomData>(defaultRoomData);
     const [loading, setLoading] = useState<boolean>(true);
     const [gameStarted, setGameStarted] = useState<boolean>(false);
+    const [turnPlayerIndex, setTurnPlayerIndex] = useState<number>(-1);
+    const [chooserIndex, setChooserIndex] = useState<number>(-1);
+    const [username, setUsername] = useState<string>(localStorage.getItem('bgHeroPlayerName') || '');
+    const [usernameValue, setUsernameValue] = useState<string>(localStorage.getItem('bgHeroPlayerName') || '');
+    const [openUsernameModal, setOpenUsernameModal] = useState<boolean>(false);
   
     const [socket, setSocket] = useState<WebSocket | null>(null);
-    console.log(socket);
-    console.log(gameStarted);
 
     useEffect(() => {
       // Connect to the WebSocket server
-      const ws = new WebSocket('ws://localhost:5000'); // Replace with your server URL
+      const ws: WebSocket = new WebSocket('ws://localhost:5000'); // Replace with your server URL
       setSocket(ws);
   
       ws.onopen = () => {
@@ -61,12 +68,19 @@ const Room: React.FC<RoomProps> = ({ roomId }) => {
         }
 
         if(data.type === 'game-start'){
+          setTurnPlayerIndex(data.turnPlayer);
+          setChooserIndex(data.turnPlayer);
+          setGameStarted(true);
+        }
+
+        if(data.type === 'change-username'){
           setRoomData((prev) => {
             return {
               ...prev,
-              turnPlayer: data.turnPlayer,
+              players: data.players,
+              moderator: data.moderator
             };
-          });
+          })
         }
       };
   
@@ -122,6 +136,55 @@ const Room: React.FC<RoomProps> = ({ roomId }) => {
         }
     }
 
+    const handleGameStart = () => {
+      if(roomData.players.length <= 1){
+        alert('Need at least 2 players to start the game!');
+        return;
+      }
+      if(socket){
+        socket.send(JSON.stringify({ action: 'start-game', roomId, username: localStorage.getItem('bgHeroPlayerName') }));
+      }
+    }
+    
+    const renderChangeUsernameButton = () => {
+      return (
+        <Dialog.Root open={openUsernameModal}>
+          <Dialog.Trigger asChild>
+            <button className="Button violet" onClick={()=>setOpenUsernameModal(true)}>Change username</button>
+          </Dialog.Trigger>
+          <Dialog.Portal>
+            <Dialog.Overlay className="UsernameDialogOverlay" />
+            <Dialog.Content className="UsernameDialogContent">
+              <Dialog.Title className="UsernameDialogTitle">Change your username:</Dialog.Title>
+              <br />
+              <div className="username-container">
+                <input  
+                  className ="Input" 
+                  type="text" 
+                  value={usernameValue}
+                  onChange={(e) => setUsernameValue(e.target.value)}
+                  onKeyDown={(e)=>{
+                    if(e.key === 'Enter'){
+                      if(socket){
+                        const oldUsername = localStorage.getItem('bgHeroPlayerName');
+                        socket.send(JSON.stringify({ action: 'change-username', roomId, oldUsername, newUsername: usernameValue }));
+                      }
+                      localStorage.setItem('bgHeroPlayerName', usernameValue);
+                      setUsername(usernameValue);
+                      setOpenUsernameModal(false);
+                    }
+                  }}/>
+              </div>
+              <Dialog.Close asChild>
+                <button className="IconButton" aria-label="Close">
+                </button>
+              </Dialog.Close>
+            </Dialog.Content>
+          </Dialog.Portal>
+        </Dialog.Root>
+      )
+    }
+
     const renderContent = () => {
         if (loading) {
             return <p>Loading...</p>;
@@ -134,18 +197,22 @@ const Room: React.FC<RoomProps> = ({ roomId }) => {
         return (
             <div>
                 <h1>Room ID: {roomId.substring(0, 6)}</h1>
+                <h2>Your username: {username} {renderChangeUsernameButton()}</h2>
                 <h2>Players: {`${roomData?.players.join(', ')}`}</h2>
 
-
-                {roomData.moderator === localStorage.getItem('bgHeroPlayerName') && (
+                {roomData.moderator === username && (
                   <div>
-                    <button onClick={() => setGameStarted(true)}
+                    <button onClick={handleGameStart}
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Start Game </button>
                     <br />
                     <button 
                       onClick={handleDeleteRoom}
                       className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">End Game </button>
                   </div>)}
+                  {gameStarted && socket !== null && (
+                    <div>
+                      <Game ws={socket} username={username} roomId={roomId} players={roomData.players} turnPlayer={turnPlayerIndex} chooser={chooserIndex}/>
+                    </div>)}
             </div>
         );
     }

@@ -1,0 +1,280 @@
+@import "@radix-ui/colors/black-alpha.css";
+@import "@radix-ui/colors/green.css";
+@import "@radix-ui/colors/mauve.css";
+@import "@radix-ui/colors/violet.css";
+
+
+/* reset */
+button,
+fieldset,
+input {
+	all: unset;
+}
+
+.HeroDialogOverlay {
+	background-color: var(--black-a9);
+	position: fixed;
+	inset: 0;
+	animation: overlayShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.HeroDialogContent {
+  background-color: #e8d5aa;
+  border-radius: 6px;
+  box-shadow: grey 0 0 10px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90vw;
+  max-width: 1500px;
+  padding: 25px;
+  animation: contentShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  height: 80vh;
+}
+.HeroDialogContent:focus {
+	outline: none;
+}
+
+.HeroDialogTitle {
+	margin: 0;
+	font-weight: 500;
+	color: var(--mauve-12);
+	font-size: 17px;
+}
+
+.HeroDialogDescription {
+	margin: 10px 0 20px;
+	color: var(--mauve-11);
+	font-size: 15px;
+	line-height: 1.5;
+}
+
+.HeroDialogOverlay {
+	background-color: var(--black-a9);
+	position: fixed;
+	inset: 0;
+	animation: overlayShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.UsernameDialogContent {
+	background-color: #e8d5aa;
+	border-radius: 6px;
+	box-shadow: grey 0 0 10px;
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	max-width: 1500px;
+	padding: 25px;
+	animation: contentShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.UsernameDialogContent:focus {
+	outline: none;
+}
+
+.UsernameDialogTitle {
+	margin: 0;
+	font-weight: 500;
+	color: var(--mauve-12);
+	font-size: 17px;
+}
+
+.UsernameDialogDescription {
+	margin: 10px 0 20px;
+	color: var(--mauve-11);
+	font-size: 15px;
+	line-height: 1.5;
+}
+
+.Button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 4px;
+	padding: 0 15px;
+	font-size: 15px;
+	line-height: 1;
+	font-weight: 500;
+	height: 35px;
+	user-select: none;
+}
+.Button:focus:not(:focus-visible) {
+	outline: 0;
+}
+.Button:focus-visible {
+	outline: 2px solid var(--violet-6);
+	outline-offset: 1px;
+}
+.Button.violet {
+	background-color: var(--violet-4);
+	color: var(--violet-12);
+	outline-color: var(--violet-6);
+}
+.Button.violet:hover {
+	background-color: var(--mauve-3);
+}
+.Button.green {
+	background-color: var(--green-4);
+	color: var(--green-11);
+	outline-color: var(--green-7);
+}
+.Button.green:hover {
+	background-color: var(--green-5);
+}
+
+.IconButton {
+	all: unset;
+	font-family: inherit;
+	height: 25px;
+	width: 25px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--violet-11);
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	background-color: var(--gray-3);
+}
+.IconButton:hover {
+	background-color: var(--violet-4);
+}
+.IconButton:focus {
+	box-shadow: 0 0 0 2px var(--violet-7);
+}
+
+.Fieldset {
+	display: flex;
+	gap: 20px;
+	align-items: center;
+	margin-bottom: 15px;
+}
+
+.Label {
+	font-size: 15px;
+	color: var(--violet-11);
+	width: 90px;
+	text-align: right;
+}
+
+.Input {
+	width: 90%;
+	flex: 1;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 4px;
+	padding: 0 10px;
+	font-size: 15px;
+	line-height: 1;
+	color: black;
+	box-shadow: 0 0 0 1px black;
+	height: 35px;
+}
+
+.Input:focus {
+	box-shadow: 0 0 0 2px var(--violet-8);
+}
+
+@keyframes overlayShow {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes contentShow {
+	from {
+		opacity: 0;
+		transform: translate(-50%, -48%) scale(0.96);
+	}
+	to {
+		opacity: 1;
+		transform: translate(-50%, -50%) scale(1);
+	}
+}
+
+/* Container for the flex layout */
+.hero-container {
+  display: flex;
+  flex-wrap: wrap; /* Allow items to wrap to the next line */
+  gap: 16px; /* Space between items */
+  padding: 10px;
+  text-align: center;
+  justify-content: space-evenly;
+	max-width: 80%;
+}
+
+.hero-image {
+  max-width: 150px;
+}
+
+.hero-name {
+  max-width: 150px;
+  margin-top: 2px;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #68543c;
+}
+
+.message-header {
+	margin-top: 5%;
+}
+
+.question-box {
+	margin-right: 2%;
+	margin-bottom: 2%;
+}
+
+.hero-info-box {
+  position: sticky;
+  top: 0; /* This makes it stick to the top and grow downward */
+  background-color: #e8d5aa;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  border: 3px solid black; /* Corrected border syntax */
+  padding: 1%;
+  font-size: 1rem;
+  max-width: 13%;
+	transform: translateY(-45vh) translateX(525%);
+}
+
+.hero-info-title {
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.hero-info-description {
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.hero-info-abilities {
+  margin-top: 8px;
+}
+
+.hp-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.hp-description {
+  color: #666;
+  margin: 2px 0;
+}
+
+.dialog-layout {
+  display: flex;
+  gap: 20px;
+  height: calc(100% - 60px); /* Adjust based on your header height */
+}
+
+.scrollable-hero-container {
+  flex: 1;
+  overflow-y: auto;
+  height: 100%;
+  padding-right: 10px;
+}

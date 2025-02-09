@@ -9,10 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/colors": "^3.0.0",
     "dotenv": "^16.4.7",
     "firebase": "^11.2.0",
     "generate-unique-id": "^2.0.3",
     "next": "15.1.5",
+    "radix-ui": "^1.1.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

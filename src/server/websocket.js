@@ -1,5 +1,5 @@
 const { WebSocketServer } = require('ws');
-const { db } = require('./firebase');
+const db = require('./firebase/firebase');
 
 const rooms = new Map(); // Map of roomId -> Set of WebSocket connections
 
@@ -31,22 +31,51 @@ const initializeWebSocket = (server) => {
         }, ws);
       }
 
-      if(message.action === 'game-start'){
+      if(message.action === 'start-game'){
         const {roomId} = message;
-
-        const roomRef = doc(db, 'rooms', roomId);
-        const roomSnapshot = await getDoc(roomRef);
-        if(roomSnapshot.exists()){
+        // const roomRef = doc(db, 'rooms', roomId);
+        // const roomSnapshot = await getDoc(roomRef);
+        const roomRef = db.collection('rooms').doc(roomId);
+        const roomSnapshot = await roomRef.get();
+        console.log(roomSnapshot.data());
+        if(roomSnapshot.exists){
           let turnPlayer = roomSnapshot.data().turnPlayer;
+          console.log(turnPlayer);
           if(turnPlayer === -1){
             turnPlayer = Math.floor(Math.random() * roomSnapshot.data().players.length);
-            await updateDoc(roomRef, {turnPlayer});
+            console.log(turnPlayer);
+            await roomRef.update({turnPlayer: turnPlayer, chooser: turnPlayer});
           }
 
+          console.log(turnPlayer)
+          broadcastToRoom(rooms, message.roomId, {
+            message: 'Game has started',
+            type: 'game-start',
+            turnPlayer: turnPlayer,
+          });
+        }
+      }
+
+      if(message.action === 'change-username'){
+        const {roomId, oldUsername, newUsername} = message;
+        const roomRef = db.collection('rooms').doc(roomId);
+        const roomSnapshot = await roomRef.get();
+        let {players, moderator} = roomSnapshot.data();
+        const playerIndex = players.indexOf(oldUsername);
+        players[playerIndex] = newUsername;
+        console.log(oldUsername, moderator);
+        if(oldUsername === moderator){
+          moderator = newUsername;
+          await roomRef.update({moderator: newUsername, players: players});
+        }else{
+          await roomRef.update({players: players});
+        }
+        
         broadcastToRoom(rooms, roomId, {
-          message: 'Game has started',
-          type: 'game-start',
-          turnPlayer: turnPlayer,
+          type: 'change-username',
+          players: players,
+          username: message.newUsername,
+          moderator,
         });
       }
 
@@ -60,6 +89,53 @@ const initializeWebSocket = (server) => {
           type: 'message',
         });
       }
+
+      if(message.action === 'next-turn'){
+        const roomRef = db.collection('rooms').doc(message.roomId);
+        const roomSnapshot = await roomRef.get();
+        let {turnPlayer, players, messages} = roomSnapshot.data();
+        
+        let turnPlayerIndex = (turnPlayer + 1) % players.length;
+        messages.push({player: players[turnPlayer], message: message.message});
+        console.log(messages);
+
+        if(message.message === 'Hero chosen!'){
+          await roomRef.update({turnPlayer: turnPlayerIndex, messages: messages, chosenHero: message.chosenHero});
+        }else if(message.message === 'Hero guessed!'){
+
+          if(message.guessedHero === roomSnapshot.data().chosenHero){
+            messages.push({player: players[turnPlayer], message: 'Hero guessed correctly!'});
+          }else{
+            messages.push({player: players[turnPlayer], message: 'Hero guessed incorrectly!'});
+          }
+        
+        }else{
+          await roomRef.update({turnPlayer: turnPlayerIndex, messages: messages});
+        }
+
+        broadcastToRoom(rooms, message.roomId, {
+          type: 'next-turn',
+          turnPlayer: turnPlayerIndex,
+          messages: messages,
+        });
+      }
+
+      if(message.action === 'send-question' || message.action === 'send-response'){
+        const roomRef = db.collection('rooms').doc(message.roomId);
+        const roomSnapshot = await roomRef.get();
+        let {turnPlayer, players, messages} = roomSnapshot.data();
+        
+        let turnPlayerIndex = (turnPlayer + 1) % players.length;
+        messages.push({player: players[turnPlayer], message: 'A hero has been chosen!'});
+        console.log(messages);
+        await roomRef.update({turnPlayer: turnPlayerIndex, messages: messages});
+        broadcastToRoom(rooms, message.roomId, {
+          type: 'next-turn',
+          turnPlayer: turnPlayerIndex,
+          messages: messages,
+        });
+      }
+
     });
 
     ws.on('close', () => {
@@ -92,7 +168,7 @@ const broadcastToRoom = (rooms, roomId, message) => {
         client.send(JSON.stringify(message));
       }
     });
-  };
+};
   
 
 module.exports = { initializeWebSocket };
