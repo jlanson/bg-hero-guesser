@@ -46,7 +46,7 @@ const Room: React.FC<RoomProps> = ({ roomId }) => {
 
     useEffect(() => {
       // Connect to the WebSocket server
-      const ws: WebSocket = new WebSocket('ws://bg-hero-guesser.onrender.com');
+      const ws: WebSocket = new WebSocket('wss://bg-hero-guesser.onrender.com');
       setSocket(ws);
       if(window !== undefined){
         setUsername(localStorage.getItem('bgHeroPlayerName') || '');
@@ -71,12 +71,14 @@ const Room: React.FC<RoomProps> = ({ roomId }) => {
         console.log('Message from server:', data);
         
         if(data.type === 'user-joined'){
-          setRoomData((prev) => {
-            return {
-              ...prev,
-              players: [...prev.players, data.username]
-            };
-          });
+          if(data.username !== username){
+            setRoomData((prev) => {
+              return {
+                ...prev,
+                players: [...prev.players, data.username]
+              };
+            });
+          }
         }
 
         if(data.type === 'game-start'){
