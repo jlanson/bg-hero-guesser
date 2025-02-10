@@ -200,9 +200,9 @@ const Game: React.FC<GameProps> = ({ws, username, players, roomId, turnPlayer, c
   const renderResponse = () => {
     return (
       <div>
-        <button className="response-button" onClick={() => onResponseSend('yes')}>Yes</button>
-        <button className="response-button" onClick={() => onResponseSend('no')}>No</button>
-        <button className="response-button" onClick={() => onResponseSend('rephrase')}>Don&apos;t know</button>
+        <button className="response-button" onClick={() => onResponseSend('Yes')}>Yes</button>
+        <button className="response-button" onClick={() => onResponseSend('No')}>No</button>
+        <button className="response-button" onClick={() => onResponseSend('Dont\'t know')}>Don&apos;t know</button>
       </div>
     )
   }
