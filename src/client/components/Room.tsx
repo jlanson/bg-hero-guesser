@@ -39,10 +39,7 @@ const Room: React.FC<RoomProps> = ({ roomId }) => {
     const [chooserIndex, setChooserIndex] = useState<number>(-1);
     const [username, setUsername] = useState<string>('');
     const [usernameValue, setUsernameValue] = useState<string>('');
-    if(window !== undefined){
-      setUsername(localStorage.getItem('bgHeroPlayerName') || '');
-      setUsernameValue(localStorage.getItem('bgHeroPlayerName') || '');
-    }
+
     const [openUsernameModal, setOpenUsernameModal] = useState<boolean>(false);
   
     const [socket, setSocket] = useState<WebSocket | null>(null);
@@ -51,15 +48,25 @@ const Room: React.FC<RoomProps> = ({ roomId }) => {
       // Connect to the WebSocket server
       const ws: WebSocket = new WebSocket('ws://localhost:5000'); // Replace with your server URL
       setSocket(ws);
+      if(window !== undefined){
+        setUsername(localStorage.getItem('bgHeroPlayerName') || '');
+        setUsernameValue(localStorage.getItem('bgHeroPlayerName') || '');
+      }
   
-      ws.onopen = () => {
+      return () => {
+        ws.close();
+      };
+    }, [roomId]);
+
+    if(socket){
+      socket.onopen = () => {
 
         console.log('WebSocket connected');
         // Send a join-room message to the server
-        ws.send(JSON.stringify({ action: 'join-room', roomId, username: username}));
+        socket.send(JSON.stringify({ action: 'join-room', roomId, username: username}));
       };
   
-      ws.onmessage = (event) => {
+      socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
         console.log('Message from server:', data);
         
@@ -89,7 +96,7 @@ const Room: React.FC<RoomProps> = ({ roomId }) => {
         }
       };
   
-      ws.onclose = () => {
+      socket.onclose = () => {
         console.log('WebSocket disconnected');
       };
 
@@ -101,11 +108,7 @@ const Room: React.FC<RoomProps> = ({ roomId }) => {
           }
         }
       });
-  
-      return () => {
-        ws.close();
-      };
-    }, [roomId]);
+    }
       
     useEffect(() => {
       const fetchRoom = async () => {
