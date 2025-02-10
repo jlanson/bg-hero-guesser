@@ -3,7 +3,6 @@
 import { Dialog } from "radix-ui";
 import { useEffect, useState } from "react";   
 import { getAllHeroData } from "../helpers"; 
-import Image from "next/image";
 import "./styles.css"
 
 interface Hero {
@@ -147,7 +146,7 @@ const Game: React.FC<GameProps> = ({ws, username, players, roomId, turnPlayer, c
                       onMouseEnter={() => setHoveredHero({name: hero.name, image: hero.image,  hpName: hero.hpName, hpDescription: hero.hpDescription})}
                       onMouseLeave={() => setHoveredHero(null)}
                       >
-                      <Image src={hero.image} alt={hero.name} className="hero-image" />
+                      <img src={hero.image} alt={hero.name} className="hero-image"/>
                       <h2 className="hero-name">{hero.name}</h2>
 
                                     
@@ -201,9 +200,9 @@ const Game: React.FC<GameProps> = ({ws, username, players, roomId, turnPlayer, c
   const renderResponse = () => {
     return (
       <div>
-        <button onClick={() => onResponseSend('yes')}>Yes</button>
-        <button onClick={() => onResponseSend('no')}>No</button>
-        <button onClick={() => onResponseSend('rephrase')}>Ask other player to send a different question</button>
+        <button className="response-button" onClick={() => onResponseSend('yes')}>Yes</button>
+        <button className="response-button" onClick={() => onResponseSend('no')}>No</button>
+        <button className="response-button" onClick={() => onResponseSend('rephrase')}>Don&apos;t know</button>
       </div>
     )
   }
